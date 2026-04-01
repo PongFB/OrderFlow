@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-namespace OrderFlow.Models;
+﻿using OrderFlow.Models;
 
 public class Order
 {
