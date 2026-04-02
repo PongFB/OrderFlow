@@ -1,44 +1,31 @@
-﻿using OrderFlow.Models;
+﻿using System.Diagnostics;
 using OrderFlow.Data;
 using OrderFlow.Services;
 
-Console.WriteLine("=== LAB 2 | ZADANIE 1: ZDARZENIA ===");
+Console.WriteLine("=== LAB 2 | ZADANIE 2: ASYNCHRONICZNOŚĆ ===\n");
 
-var pipeline = new OrderPipeline();
+var orders = SampleData.Orders.Where(o => o.Pozycje.Count > 0).ToList();
+var externalServices = new ExternalServiceSimulator();
+var sw = new Stopwatch();
 
-pipeline.StatusChanged += (sender, e) =>
+Console.WriteLine("--- 1. Przetwarzanie SEKWENCYJNE (po kolei) ---");
+sw.Start();
+foreach (var order in orders)
 {
-    Console.WriteLine($"[LOG {e.Timestamp:HH:mm:ss}] Zlecenie #{e.Order.Id}: {e.OldStatus} -> {e.NewStatus}");
-};
+    await externalServices.ProcessOrderAsync(order);
+}
+sw.Stop();
+var sekwencyjnieCzas = sw.ElapsedMilliseconds;
 
-pipeline.StatusChanged += (sender, e) =>
-{
-    if (e.NewStatus == OrderStatus.Completed)
-    {
-        Console.WriteLine($"[EMAIL] Wysłano maila do {e.Order.Klient.Email}: 'Twoje zamówienie zostało zrealizowane!'");
-    }
-};
 
-pipeline.ValidationCompleted += (sender, e) =>
-{
-    if (e.IsValid)
-    {
-        Console.WriteLine($"[STATYSTYKI] Zamówienie #{e.Order.Id} przeszło walidację poprawnie.");
-    }
-    else
-    {
-        Console.WriteLine($"[STATYSTYKI] Zamówienie #{e.Order.Id} odrzucone. Powód: {string.Join(", ", e.Errors)}");
-    }
-};
+Console.WriteLine("\n--- 2. Przetwarzanie RÓWNOLEGŁE (max 3 na raz) ---");
+sw.Restart();
+await externalServices.ProcessMultipleOrdersAsync(orders);
+sw.Stop();
+var rownolegleCzas = sw.ElapsedMilliseconds;
 
-var poprawneZamowienie = SampleData.Orders[2];
-
-var pusteZamowienie = new Order(99, SampleData.Customers[0]);
-
-Console.WriteLine("\n--- Przetwarzam poprawne zamówienie ---");
-pipeline.ProcessOrder(poprawneZamowienie);
-
-Console.WriteLine("\n--- Przetwarzam puste zamówienie ---");
-pipeline.ProcessOrder(pusteZamowienie);
+Console.WriteLine("\n=== PODSUMOWANIE CZASOWE ===");
+Console.WriteLine($"Czas sekwencyjnie: {sekwencyjnieCzas} ms");
+Console.WriteLine($"Czas równolegle:   {rownolegleCzas} ms");
 
 Console.ReadLine();
