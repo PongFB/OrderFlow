@@ -22,10 +22,10 @@ public static class SampleData
 
         Customers = new List<Customer>
         {
-            new Customer(1, "Jan Kowalski", "jan.kowalski@example.com", "pass123"),
-            new Customer(2, "Anna Nowak", "anna.nowak@example.com", "pass456", isVip: true),
-            new Customer(3, "Piotr Wiśniewski", "piotr.w@example.com", "pass789"),
-            new Customer(4, "Katarzyna Wójcik", "kasia.w@example.com", "pass000")
+            new Customer(1, "Jan Kowalski", "jan.kowalski@merito.student.pl.com", "pass123"),
+            new Customer(2, "Anna Nowak", "anna.nowak@merito.student.pl.com", "pass456", isVip: true),
+            new Customer(3, "Piotr Wiśniewski", "piotr.w@merito.student.pl.com", "pass789"),
+            new Customer(4, "Katarzyna Wójcik", "kasia.w@merito.student.pl.com", "pass000")
         };
 
         Orders = new List<Order>();
