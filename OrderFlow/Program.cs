@@ -1,40 +1,32 @@
 ﻿using OrderFlow.Data;
-using OrderFlow.Services;
+using OrderFlow.Persistence;
 
-Console.WriteLine("=== LAB 2 | ZADANIE 3: THREAD SAFETY ===\n");
+Console.WriteLine("=== LAB 3 | ZADANIE 1: REPOZYTORIUM ZAMÓWIEŃ (JSON & XML) ===\n");
 
-var massiveOrderList = new List<Order>();
-for (int i = 0; i < 100_000; i++)
-{
-    massiveOrderList.AddRange(SampleData.Orders);
-}
+string appDir = AppContext.BaseDirectory;
+string jsonPath = Path.Combine(appDir, "data", "orders.json");
+string xmlPath = Path.Combine(appDir, "data", "orders.xml");
 
-int expectedCount = massiveOrderList.Count;
-decimal expectedRevenue = 0;
-foreach (var o in massiveOrderList) expectedRevenue += o.TotalAmount;
+var repository = new OrderRepository();
 
-Console.WriteLine($"Oczekiwana liczba zamówień: {expectedCount}");
-Console.WriteLine($"Oczekiwany łączny przychód:  {expectedRevenue:C}\n");
+var orginalneZamowienia = SampleData.Orders;
+Console.WriteLine($"[START] Posiadamy {orginalneZamowienia.Count} zamówień testowych.");
 
-var stats = new OrderStatistics();
+Console.WriteLine("\n[ZAPIS] Zapisuję zamówienia do plików...");
+await repository.SaveToJsonAsync(orginalneZamowienia, jsonPath);
+await repository.SaveToXmlAsync(orginalneZamowienia, xmlPath);
+Console.WriteLine($" -> Zapisano JSON: {jsonPath}");
+Console.WriteLine($" -> Zapisano XML: {xmlPath}");
 
-Console.WriteLine("--- 1. Przetwarzanie RÓWNOLEGŁE (Bez synchronizacji) ---");
-stats.CalculateUnsafe(massiveOrderList);
+orginalneZamowienia = null;
+Console.WriteLine("\n[RESET] Wyczyszczono pamięć RAM (Zamówienia = null).");
 
-Console.WriteLine($"Otrzymana liczba zamówień:   {stats.TotalProcessed} ❌ (Zgubiono: {expectedCount - stats.TotalProcessed})");
-Console.WriteLine($"Otrzymany łączny przychód:   {stats.TotalRevenue:C} ❌");
+Console.WriteLine("\n[ODCZYT] Wczytuję dane z dysku...");
+var wczytaneZJson = await repository.LoadFromJsonAsync(jsonPath);
+var wczytaneZXml = await repository.LoadFromXmlAsync(xmlPath);
 
-stats.Reset();
-
-Console.WriteLine("\n--- 2. Przetwarzanie RÓWNOLEGŁE (Bezpieczne - lock & Interlocked) ---");
-stats.CalculateSafe(massiveOrderList);
-
-Console.WriteLine($"Otrzymana liczba zamówień:   {stats.TotalProcessed} ✅ (Zgubiono: 0)");
-Console.WriteLine($"Otrzymany łączny przychód:   {stats.TotalRevenue:C} ✅");
-Console.WriteLine("\nPodział na statusy (ConcurrentDictionary):");
-foreach (var status in stats.SafeOrdersPerStatus)
-{
-    Console.WriteLine($" - {status.Key}: {status.Value}");
-}
+Console.WriteLine("\n=== WYNIKI ROUND-TRIP ===");
+Console.WriteLine($"Z JSON wczytano: {wczytaneZJson.Count} zamówień");
+Console.WriteLine($"Z XML wczytano:  {wczytaneZXml.Count} zamówień");
 
 Console.ReadLine();

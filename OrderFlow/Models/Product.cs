@@ -2,12 +2,14 @@
 
 public class Product
 {
-    public int Id { get; private set; }
-    public string Nazwa { get; private set; }
-    public decimal Cena { get; private set; }
-    public int Ilosc { get; private set; }
-    public string Kategoria { get; private set; }
-    public bool Status { get; private set; }
+    public int Id { get; set; }
+    public string Nazwa { get; set; }
+    public decimal Cena { get; set; }
+    public int Ilosc { get; set; }
+    public string Kategoria { get; set; }
+    public bool Status { get; set; }
+
+    public Product() { }
 
     public Product(int id, string nazwa, decimal cena, int ilosc, string kategoria, bool status)
     {

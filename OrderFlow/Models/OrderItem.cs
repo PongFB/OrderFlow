@@ -2,10 +2,12 @@
 
 public class OrderItem
 {
-    public Product ZamowionyProdukt { get; private set; }
-    public int ZamowionaIlosc { get; private set; }
+    public Product ZamowionyProdukt { get; set; }
+    public int ZamowionaIlosc { get; set; }
 
     public decimal TotalPrice => ZamowionyProdukt.Cena * ZamowionaIlosc;
+
+    public OrderItem() { }
 
     public OrderItem(Product produkt, int zamowionaIlosc)
     {
