@@ -1,32 +1,33 @@
 ﻿using OrderFlow.Data;
 using OrderFlow.Persistence;
 
-Console.WriteLine("=== LAB 3 | ZADANIE 1: REPOZYTORIUM ZAMÓWIEŃ (JSON & XML) ===\n");
+Console.WriteLine("=== LAB 3 | ZADANIE 2: RAPORT LINQ TO XML ===\n");
 
 string appDir = AppContext.BaseDirectory;
-string jsonPath = Path.Combine(appDir, "data", "orders.json");
-string xmlPath = Path.Combine(appDir, "data", "orders.xml");
+string reportPath = Path.Combine(appDir, "data", "report.xml");
 
-var repository = new OrderRepository();
+var reportBuilder = new XmlReportBuilder();
 
 var orginalneZamowienia = SampleData.Orders;
-Console.WriteLine($"[START] Posiadamy {orginalneZamowienia.Count} zamówień testowych.");
 
-Console.WriteLine("\n[ZAPIS] Zapisuję zamówienia do plików...");
-await repository.SaveToJsonAsync(orginalneZamowienia, jsonPath);
-await repository.SaveToXmlAsync(orginalneZamowienia, xmlPath);
-Console.WriteLine($" -> Zapisano JSON: {jsonPath}");
-Console.WriteLine($" -> Zapisano XML: {xmlPath}");
+Console.WriteLine("Generowanie drzewka XML za pomocą LINQ to XML");
+var xmlReport = reportBuilder.BuildReport(orginalneZamowienia);
 
-orginalneZamowienia = null;
-Console.WriteLine("\n[RESET] Wyczyszczono pamięć RAM (Zamówienia = null).");
+Console.WriteLine($"Zapis do: {reportPath}");
+await reportBuilder.SaveReportAsync(xmlReport, reportPath);
 
-Console.WriteLine("\n[ODCZYT] Wczytuję dane z dysku...");
-var wczytaneZJson = await repository.LoadFromJsonAsync(jsonPath);
-var wczytaneZXml = await repository.LoadFromXmlAsync(xmlPath);
+Console.WriteLine("\nPodgląd raportu w pamięci:");
+Console.WriteLine(xmlReport.Root?.Element("summary"));
 
-Console.WriteLine("\n=== WYNIKI ROUND-TRIP ===");
-Console.WriteLine($"Z JSON wczytano: {wczytaneZJson.Count} zamówień");
-Console.WriteLine($"Z XML wczytano:  {wczytaneZXml.Count} zamówień");
+decimal progKwotowy = 1000m;
+Console.WriteLine($"\nSzukanie zamówień > {progKwotowy:C}");
+
+var highValueOrders = await reportBuilder.FindHighValueOrderIdsAsync(reportPath, progKwotowy);
+
+Console.WriteLine($"Znaleziono zamówienia ({highValueOrders.Count()} szt.):");
+foreach (var id in highValueOrders)
+{
+    Console.WriteLine($" -> Zamówienie #{id}");
+}
 
 Console.ReadLine();
