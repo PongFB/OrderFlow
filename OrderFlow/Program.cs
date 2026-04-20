@@ -1,33 +1,34 @@
 ﻿using OrderFlow.Data;
 using OrderFlow.Persistence;
+using OrderFlow.Services;
+using OrderFlow.Watchers;
 
-Console.WriteLine("=== LAB 3 | ZADANIE 2: RAPORT LINQ TO XML ===\n");
+Console.WriteLine("LAB 3 | ZADANIE 3: AUTOMATYCZNY IMPORT\n");
 
 string appDir = AppContext.BaseDirectory;
-string reportPath = Path.Combine(appDir, "data", "report.xml");
+string inboxPath = Path.Combine(appDir, "inbox");
 
-var reportBuilder = new XmlReportBuilder();
+var repository = new OrderRepository();
+var pipeline = new OrderPipeline();
 
-var orginalneZamowienia = SampleData.Orders;
+pipeline.StatusChanged += (s, e) =>
+    Console.WriteLine($"Zamówienie #{e.Order.Id} zmieniło status: {e.OldStatus} -> {e.NewStatus}");
 
-Console.WriteLine("Generowanie drzewka XML za pomocą LINQ to XML");
-var xmlReport = reportBuilder.BuildReport(orginalneZamowienia);
+using var watcher = new InboxWatcher(inboxPath, pipeline, repository);
+Console.WriteLine("Watcher uruchomiony.");
 
-Console.WriteLine($"Zapis do: {reportPath}");
-await reportBuilder.SaveReportAsync(xmlReport, reportPath);
-
-Console.WriteLine("\nPodgląd raportu w pamięci:");
-Console.WriteLine(xmlReport.Root?.Element("summary"));
-
-decimal progKwotowy = 1000m;
-Console.WriteLine($"\nSzukanie zamówień > {progKwotowy:C}");
-
-var highValueOrders = await reportBuilder.FindHighValueOrderIdsAsync(reportPath, progKwotowy);
-
-Console.WriteLine($"Znaleziono zamówienia ({highValueOrders.Count()} szt.):");
-foreach (var id in highValueOrders)
+var simulationTask = Task.Run(async () =>
 {
-    Console.WriteLine($" -> Zamówienie #{id}");
-}
+    for (int i = 1; i <= 3; i++)
+    {
+        await Task.Delay(3000);
+        string fileName = $"auto_import_{i}.json";
+        string filePath = Path.Combine(inboxPath, fileName);
 
+        Console.WriteLine($"\nGeneruję nowy plik do importu: {fileName}");
+        await repository.SaveToJsonAsync(SampleData.Orders, filePath);
+    }
+});
+
+Console.WriteLine("Naciśnij ENTER, aby zakończyć działanie programu");
 Console.ReadLine();

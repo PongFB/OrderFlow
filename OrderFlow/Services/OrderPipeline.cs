@@ -29,6 +29,12 @@ public class OrderPipeline
         ChangeStatus(order, OrderStatus.Completed);
     }
 
+    public Task ProcessOrderAsync(Order order)
+    {
+        ProcessOrder(order);
+        return Task.CompletedTask;
+    }
+
     private void ChangeStatus(Order order, OrderStatus newStatus)
     {
         var oldStatus = order.Status;
