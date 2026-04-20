@@ -361,3 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# --- OrderFlow Lab 3 Custom Ignores ---
+
+# Foldery z danymi wygenerowanymi przez program
+data/
+inbox/
+
+# Pliki tymczasowe (np. tworzone podczas zapisu)
+*.tmp
