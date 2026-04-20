@@ -2,11 +2,13 @@
 
 public class Customer
 {
-    public int Id { get; private set; }
-    public string Nazwa { get; private set; }
-    public string Email { get; private set; }
-    public string Haslo { get; private set; }
-    public bool IsVip { get; private set; }
+    public int Id { get; set; }
+    public string Nazwa { get; set; }
+    public string Email { get; set; }
+    public string Haslo { get; set; }
+    public bool IsVip { get; set; }
+
+    public Customer() { }
 
     public Customer(int id, string nazwa, string email, string haslo, bool isVip = false)
     {

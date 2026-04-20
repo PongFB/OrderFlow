@@ -1,4 +1,6 @@
-﻿namespace OrderFlow.Services;
+﻿using OrderFlow.Models;
+
+namespace OrderFlow.Services;
 
 public class OrderValidationEventArgs : EventArgs
 {

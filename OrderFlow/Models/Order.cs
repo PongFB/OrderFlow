@@ -1,13 +1,31 @@
-﻿using OrderFlow.Models;
+﻿using System.Text.Json.Serialization;
+using System.Xml.Serialization;
 
+namespace OrderFlow.Models;
+
+[XmlRoot("zamowienie")]
 public class Order
 {
-    public int Id { get; private set; }
-    public Customer Klient { get; private set; }
-    public DateTime DataZamowienia { get; private set; }
-    public OrderStatus Status { get; private set; }
-    public List<OrderItem> Pozycje { get; private set; } = new List<OrderItem>();
+    [XmlAttribute("id_zamowienia")]
+    public int Id { get;  set; }
+
+    [JsonPropertyName("klient")]
+    [XmlElement("dane_klient")]
+    public Customer Klient { get; set; }
+
+    [JsonIgnore]
+    [XmlIgnore]
+    public DateTime DataZamowienia { get; set; }
+
+    public OrderStatus Status { get; set; }
+
+    [XmlArray("lista_pozycji")]
+    [XmlArrayItem("pozycja")]
+    public List<OrderItem> Pozycje { get; set; } = new List<OrderItem>();
+
     public decimal TotalAmount => Pozycje.Sum(pozycja => pozycja.TotalPrice);
+
+    public Order() { }
 
     public Order(int id, Customer klient)
     {

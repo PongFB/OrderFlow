@@ -1,40 +1,34 @@
 ﻿using OrderFlow.Data;
+using OrderFlow.Persistence;
 using OrderFlow.Services;
+using OrderFlow.Watchers;
 
-Console.WriteLine("=== LAB 2 | ZADANIE 3: THREAD SAFETY ===\n");
+Console.WriteLine("LAB 3 | ZADANIE 3: AUTOMATYCZNY IMPORT\n");
 
-var massiveOrderList = new List<Order>();
-for (int i = 0; i < 100_000; i++)
+string appDir = AppContext.BaseDirectory;
+string inboxPath = Path.Combine(appDir, "inbox");
+
+var repository = new OrderRepository();
+var pipeline = new OrderPipeline();
+
+pipeline.StatusChanged += (s, e) =>
+    Console.WriteLine($"Zamówienie #{e.Order.Id} zmieniło status: {e.OldStatus} -> {e.NewStatus}");
+
+using var watcher = new InboxWatcher(inboxPath, pipeline, repository);
+Console.WriteLine("Watcher uruchomiony.");
+
+var simulationTask = Task.Run(async () =>
 {
-    massiveOrderList.AddRange(SampleData.Orders);
-}
+    for (int i = 1; i <= 3; i++)
+    {
+        await Task.Delay(3000);
+        string fileName = $"auto_import_{i}.json";
+        string filePath = Path.Combine(inboxPath, fileName);
 
-int expectedCount = massiveOrderList.Count;
-decimal expectedRevenue = 0;
-foreach (var o in massiveOrderList) expectedRevenue += o.TotalAmount;
+        Console.WriteLine($"\nGeneruję nowy plik do importu: {fileName}");
+        await repository.SaveToJsonAsync(SampleData.Orders, filePath);
+    }
+});
 
-Console.WriteLine($"Oczekiwana liczba zamówień: {expectedCount}");
-Console.WriteLine($"Oczekiwany łączny przychód:  {expectedRevenue:C}\n");
-
-var stats = new OrderStatistics();
-
-Console.WriteLine("--- 1. Przetwarzanie RÓWNOLEGŁE (Bez synchronizacji) ---");
-stats.CalculateUnsafe(massiveOrderList);
-
-Console.WriteLine($"Otrzymana liczba zamówień:   {stats.TotalProcessed} ❌ (Zgubiono: {expectedCount - stats.TotalProcessed})");
-Console.WriteLine($"Otrzymany łączny przychód:   {stats.TotalRevenue:C} ❌");
-
-stats.Reset();
-
-Console.WriteLine("\n--- 2. Przetwarzanie RÓWNOLEGŁE (Bezpieczne - lock & Interlocked) ---");
-stats.CalculateSafe(massiveOrderList);
-
-Console.WriteLine($"Otrzymana liczba zamówień:   {stats.TotalProcessed} ✅ (Zgubiono: 0)");
-Console.WriteLine($"Otrzymany łączny przychód:   {stats.TotalRevenue:C} ✅");
-Console.WriteLine("\nPodział na statusy (ConcurrentDictionary):");
-foreach (var status in stats.SafeOrdersPerStatus)
-{
-    Console.WriteLine($" - {status.Key}: {status.Value}");
-}
-
+Console.WriteLine("Naciśnij ENTER, aby zakończyć działanie programu");
 Console.ReadLine();
