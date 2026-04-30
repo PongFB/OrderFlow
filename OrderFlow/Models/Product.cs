@@ -9,6 +9,8 @@ public class Product
     public string Kategoria { get; set; }
     public bool Status { get; set; }
 
+    public List<OrderItem> OrderItems { get; set; } = new();
+
     public Product() { }
 
     public Product(int id, string nazwa, decimal cena, int ilosc, string kategoria, bool status)

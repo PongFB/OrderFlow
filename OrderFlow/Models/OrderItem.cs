@@ -2,16 +2,23 @@
 
 public class OrderItem
 {
-    public Product ZamowionyProdukt { get; set; }
+    public int Id { get; set; }
     public int ZamowionaIlosc { get; set; }
+    public decimal UnitPrice { get; set; } 
 
-    public decimal TotalPrice => ZamowionyProdukt.Cena * ZamowionaIlosc;
+    public decimal TotalPrice => ZamowionaIlosc * UnitPrice;
+
+    public int OrderId { get; set; }
+    public Order Order { get; set; } = null!;
+    public int ProductId { get; set; }
+    public Product Product { get; set; } = null!;
 
     public OrderItem() { }
 
-    public OrderItem(Product produkt, int zamowionaIlosc)
+    public OrderItem(int productId, int zamowionaIlosc, decimal unitPrice)
     {
-        ZamowionyProdukt = produkt;
+        ProductId = productId;
         ZamowionaIlosc = zamowionaIlosc;
+        UnitPrice = unitPrice;
     }
 }

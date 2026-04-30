@@ -370,3 +370,8 @@ inbox/
 
 # Pliki tymczasowe (np. tworzone podczas zapisu)
 *.tmp
+
+# Baza danych EF Core SQLite
+orderflow.db
+orderflow.db-shm
+orderflow.db-wal
